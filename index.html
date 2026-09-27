@@ -26,12 +26,14 @@
                   var(--bg);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color:var(--text);
-      overflow:hidden;
+      overflow-x:hidden;
+      overflow-y:auto;
     }
 
     .card{
       width:min(720px, 92vw);
-      height:min(380px, 58vh);
+      min-height:380px;
+      height:auto;
       background:var(--card);
       border-radius:18px;
       box-shadow:var(--shadow);
@@ -42,7 +44,7 @@
       justify-content:center;
       padding:28px 22px 30px;
       gap:16px;
-      overflow:hidden; /* keeps No inside card */
+      overflow:visible;
     }
 
     .iconWrap{
@@ -173,6 +175,85 @@
       display:flex;
       gap:6px;
       align-items:center;
+      pointer-events:none;
+    }
+
+    .planPanel{
+      width:min(420px, 82vw);
+      display:none;
+      margin-top:10px;
+      background:rgba(255,255,255,.7);
+      border:1px solid rgba(255,46,122,.12);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 10px 26px rgba(255,46,122,.08);
+    }
+
+    .planPanel.visible{
+      display:block;
+    }
+
+    .planForm{
+      display:grid;
+      gap:12px;
+    }
+
+    .fieldRow{
+      display:grid;
+      gap:6px;
+      text-align:left;
+    }
+
+    .fieldRow label{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .fieldRow input{
+      width:100%;
+      border:1px solid rgba(34,34,34,.12);
+      background:#fff;
+      border-radius:10px;
+      padding:12px 14px;
+      font:inherit;
+      color:var(--text);
+    }
+
+    .planActions{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:4px;
+    }
+
+    .savePlanBtn{
+      background:var(--yes);
+      color:#fff;
+      padding:11px 18px;
+      border-radius:999px;
+      font-size:14px;
+      box-shadow:0 10px 18px rgba(255,46,122,.2);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:140px;
+      white-space:nowrap;
+    }
+
+    .savedPlans{
+      margin-top:12px;
+      display:grid;
+      gap:8px;
+      text-align:left;
+    }
+
+    .savedPlanItem{
+      background:#fff;
+      border:1px solid rgba(34,34,34,.06);
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:13px;
+      color:var(--text);
     }
 
     /* Heart particles */
@@ -231,11 +312,32 @@
     </div>
 
     <div class="note" id="note">“No” seems a bit shy 😈</div>
+
+    <section class="planPanel" id="planPanel" aria-live="polite">
+      <form class="planForm" id="planForm">
+        <div class="fieldRow">
+          <label for="calendarInput">Date</label>
+          <input id="calendarInput" name="calendar" type="date" required />
+        </div>
+
+        <div class="fieldRow">
+          <label for="locationInput">Location</label>
+          <input id="locationInput" name="location" type="text" placeholder="Where should we meet?" required />
+        </div>
+
+        <div class="planActions">
+          <button class="savePlanBtn" id="savePlanBtn" type="submit">Add to plan</button>
+        </div>
+      </form>
+
+      <div class="savedPlans" id="savedPlans"></div>
+    </section>
   </main>
 
   <script>
-    // ---- CONFIG: change her name here ----
-    const GIRLFRIEND_NAME = "Nituuu"; // ✅ fixed
+    // ---- CONFIG: change her name and email here ----
+    const GIRLFRIEND_NAME = "QUEENIE"; // ✅ fixed
+    const EMAIL_TO = "syedhashir411@gmail.com"; // replace with the email you want the plan sent to
     // -------------------------------------
 
     const title = document.getElementById("title");
@@ -244,8 +346,22 @@
     const card = document.getElementById("card");
     const actions = document.getElementById("actions");
     const note = document.getElementById("note");
+    const planPanel = document.getElementById("planPanel");
+    const planForm = document.getElementById("planForm");
+    const calendarInput = document.getElementById("calendarInput");
+    const locationInput = document.getElementById("locationInput");
+    const savedPlans = document.getElementById("savedPlans");
 
     title.textContent = `${GIRLFRIEND_NAME} will you be my valentine?`;
+    function renderPreview(date, location){
+      savedPlans.innerHTML = `
+        <div class="savedPlanItem">
+          <strong>${date}</strong> — ${location}
+        </div>
+      `;
+    }
+
+    savedPlans.innerHTML = "<div class=\"savedPlanItem\">Pick a date and location, then send it by email.</div>";
 
     const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
@@ -356,11 +472,35 @@
       title.textContent = "YAYYYYY 💖 See you on Valentine’s 😌";
       note.textContent = "Best decision ever. (I knew you’d say yes 😈)";
       yesBtn.textContent = "💘";
+      planPanel.classList.add("visible");
 
       // Make No harmless after yes
       noBtn.disabled = true;
       noBtn.style.opacity = "0.25";
       noBtn.style.cursor = "not-allowed";
+    });
+
+    planForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      const date = calendarInput.value.trim();
+      const location = locationInput.value.trim();
+
+      if (!date || !location) {
+        alert("Please enter both a date and a location.");
+        return;
+      }
+
+      renderPreview(date, location);
+
+      const subject = encodeURIComponent("Valentine plan");
+      const body = encodeURIComponent(
+        `Hi love,\n\nI’d love to make this official.\n\nDate: ${date}\nLocation: ${location}\n\nCan’t wait to see you! ❤️`
+      );
+
+      const mailtoLink = `mailto:${EMAIL_TO}?subject=${subject}&body=${body}`;
+      window.location.href = mailtoLink;
+      planForm.reset();
     });
   </script>
 </body>
